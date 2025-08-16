@@ -24,3 +24,7 @@ Starter structure for a door-lock status indicator using a reed switch + magnet 
 MIT (already in your repo).
 
 Setup confirmed via GitHub Desktop.
+
+## Architecture (Block Diagram)
+![Block diagram](hardware/block-diagram.png)
+
