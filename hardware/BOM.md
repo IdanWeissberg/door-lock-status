@@ -4,3 +4,4 @@
 - Breadboard + jumpers
 - Arduino/ESP32
 - LED + buzzer (optional)
+- 5v supplier 
