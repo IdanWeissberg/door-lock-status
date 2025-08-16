@@ -26,5 +26,5 @@ MIT (already in your repo).
 Setup confirmed via GitHub Desktop.
 
 ## Architecture (Block Diagram)
-![Block diagram]([hardware/block-diagram.png](https://github.com/IdanWeissberg/door-lock-status-/blob/ee64db2f3af5de420b7cbdb71d391a4176ac5055/hardware/door-lock-wiring.png))
+![Block diagram](hardware/door-lock-wiring.png)
 
