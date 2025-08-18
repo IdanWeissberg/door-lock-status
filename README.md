@@ -29,7 +29,7 @@ Setup confirmed via GitHub Desktop.
 ![Block diagram](hardware/door-lock-wiring.png)
 
 ## Real wiring (MVP)
-![Real wiring – ESP32 DevKitC, reed on GPIO21 to GND, LED on GPIO2](hardware/wiring-photo.jpg)
+![Real wiring – ESP32 DevKitC, reed on GPIO21 to GND, LED on GPIO2](hardware/door-lock-wiring.png)
 
 **Setup (photo):**
 - Board: ESP32 DevKitC
