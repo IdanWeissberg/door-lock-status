@@ -28,3 +28,15 @@ Setup confirmed via GitHub Desktop.
 ## Architecture (Block Diagram)
 ![Block diagram](hardware/door-lock-wiring.png)
 
+## Real wiring (MVP)
+![Real wiring – ESP32 DevKitC, reed on GPIO21 to GND, LED on GPIO2](hardware/wiring-photo.jpg)
+
+**Setup (photo):**
+- Board: ESP32 DevKitC
+- Sensor: Reed switch (NO), between **GPIO21** and **GND** (using `INPUT_PULLUP`)
+- LED: **GPIO2** (onboard) — or external LED with 220Ω → GND
+- Power: USB 5V
+- Logic (INPUT_PULLUP): **CLOSED → LOW**, **OPEN → HIGH**
+- Magnet distance ~5–10 mm; face labeled for consistent closure
+
+
