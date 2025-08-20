@@ -28,12 +28,18 @@ Setup confirmed via GitHub Desktop.
 ![Block diagram](hardware/door-lock-block.png)
 
 ## Real wiring (MVP)
-![Real wiring – ESP32 DevKitC, microswitch on GPIO21, LED on GPIO2](hardware/door-lock-abtipus.jpeg)
+![Real wiring — ESP32 DevKitC, microswitch COM→GPIO21, NO→GND](hardware/microswitch-wiring.png)
+
+**Caption:** ESP32 DevKitC with microswitch **COM→GPIO21**, **NO→GND** (GPIO21 as `INPUT_PULLUP`).  
+LED on **GPIO2 → 220Ω → GND**.  
+Logic: **LOCKED = HIGH**, **UNLOCKED = LOW**. Debounce: **40 ms**.  
+*(If your latch presses the lever when locked, swap NO↔NC to keep LOCKED = HIGH.)*
+
 
 **Setup (photo):**
 - **Board:** ESP32 DevKitC
 - **Sensor:** Microswitch (SPDT lever), wired so that **LOCKED reads HIGH** with `INPUT_PULLUP`.
-  - Use **COM → GND** and connect **GPIO21** to the switch terminal (**NO** or **NC**) that is **open** in the locked state (i.e., the pin is **not** pulled to GND when locked).
+  - Use **COM → GND** and connect **GPIO21** to the switch terminal **NO** that is **open** in the locked state (i.e., the pin is **not** pulled to GND when locked).
   - Practical hint:
     - If the lever is **not pressed** when the door is locked → use **NO → GPIO21**.
     - If the lever **is pressed** when the door is locked → use **NC → GPIO21**.
