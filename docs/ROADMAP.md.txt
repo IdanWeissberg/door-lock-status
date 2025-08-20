@@ -1,5 +1,5 @@
 
-# ROADMAP – Door Lock Status
+# ROADMAP – Door Lock Status (Microswitch, ESP32)
 
 ## Current status
 - [x] Create GitHub account
@@ -7,35 +7,86 @@
 - [x] Configure `user.name` / `user.email` (use GitHub noreply)
 - [x] Create repository + MIT license
 - [x] Clone locally (`C:\Projects\...`)
-- [x] Add project skeleton (docs/hardware/firmware/test + CI)
+- [x] Add project skeleton (`docs/`, `hardware/`, `firmware/`, `test/` + CI)
 - [x] Set up GitHub Desktop; test commit & push
 - [x] Basic CI running in GitHub Actions
-- [ ] Open initial Issues
+- [ ] Open initial Issues (see Milestone 0)
 - [ ] Create a Project Board (Kanban) and link Issues
-- [ ] Finalize BOM & wiring
-- [ ] MVP firmware: read reed switch + LED indicator
-- [ ] Tests and edge cases (debounce, open/closed)
+- [ ] Finalize BOM & wiring (**Microswitch**)
+- [ ] MVP firmware: read **microswitch** + LED indicator
+- [ ] Tests and edge cases (debounce, NO/NC selection)
 - [ ] Optional: buzzer / timeout for “door left open”
 - [ ] Optional: phone notification
 - [ ] Final documentation & photos
 
-## Milestone 1 – MVP (LED indicator)
-- [ ] Choose pins for the sensor (e.g., D2) and the LED
-- [ ] Wiring diagram + photo
-- [ ] Basic firmware: read sensor, drive LED
-- [ ] Tests: locked/unlocked → correct indicator
-- [ ] Update README with setup steps
+---
 
-## Milestone 2 – UX improvements
-- [ ] Debounce / noise filtering
-- [ ] Buzzer / timer for “door left open”
-- [ ] State management (closed / open / error)
+## Milestone 0 – Planning & pivot cleanup
+- [ ] Replace all “Reed/Magnet” references with **Microswitch (SPDT lever)**
+- [ ] `README.md`: update block & real wiring sections
+- [ ] `docs/DECISIONS.md`: record wiring + logic  
+      `COM→GPIO21`, `NO→GND`, `INPUT_PULLUP`, **LOCKED = HIGH**
+- [ ] `hardware/`: add  
+      `door-lock-block.png`, `microswitch-wiring.png`, `microswitch-mount.jpg`
+- [ ] Open Issues:
+  - [ ] Update docs & diagrams to microswitch
+  - [ ] Implement firmware MVP
+  - [ ] Bench test + serial screenshot
+  - [ ] (Optional) Noise test with 100 nF cap on GPIO21
+
+**Acceptance:** repo presents microswitch as default sensor; images and docs are consistent.
+
+---
+
+## Milestone 1 – MVP (LED indicator)
+- [ ] **Pins fixed:** `SENSOR = GPIO21`, `LED = GPIO2`
+- [ ] **Wiring:** `COM→GPIO21`, `NO→GND` (use `NC` instead if lever is pressed when locked)
+- [ ] Firmware file: `firmware/door_lock_mvp/door_lock_mvp.ino`
+  - [ ] Configure `pinMode(GPIO21, INPUT_PULLUP)`
+  - [ ] `LOCKED_LEVEL = HIGH` (lever NOT pressed = locked)
+  - [ ] **Debounce = 40 ms**
+  - [ ] Print `LOCKED` / `UNLOCKED` on state changes (Serial 115200)
+  - [ ] Drive LED: **LED ON = LOCKED**
+- [ ] README: add quick upload/run steps
+- [ ] Bench test with manual lever press
+
+**Acceptance:** Serial shows correct states; LED mirrors states; no bouncing seen in normal use.
+
+---
+
+## Milestone 2 – UX & robustness
+- [ ] Noise handling for long cables (optional **100 nF** from GPIO21→GND)
+- [ ] “Door left open” timer + optional buzzer output
+- [ ] Error state handling (e.g., sensor line stuck LOW/HIGH)
+- [ ] Refine messages (timestamps, optional JSON line format)
+
+**Acceptance:** stable readings with long leads; audible/visual alert after timeout; clear logs.
+
+---
 
 ## Milestone 3 – Phone notification (optional)
-- [ ] Choose channel (Telegram / Push / other)
-- [ ] On-demand status message
+- [ ] Choose channel (Telegram / Push service)
+- [ ] Send state on change and/or on-demand status
+- [ ] Document setup (tokens, secrets handling)
+
+**Acceptance:** reliable notification on lock/unlock; setup steps reproducible.
+
+---
 
 ## Milestone 4 – Enclosure & cleanup
-- [ ] Box / tidy wiring
-- [ ] Photos / video
-- [ ] Release v0.1 + tag
+- [ ] Print/assemble small enclosure; strain relief for wiring
+- [ ] Tidy wiring; final photos + short video
+- [ ] Tag **v0.1** release; attach assets
+
+**Acceptance:** clean install photos, video demo, reproducible build in README.
+
+---
+
+## BOM (snapshot to finalize)
+- [ ] ESP32 DevKitC
+- [ ] Microswitch **SPDT lever**
+- [ ] LED 5 mm + **220 Ω** resistor (if not using onboard LED)
+- [ ] Hook-up wires, heat-shrink / tape
+- [ ] (Optional) **100 nF** ceramic cap (GPIO21→GND)
+- [ ] Mounting tape/screws for the microswitch
+
