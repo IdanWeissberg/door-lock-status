@@ -47,10 +47,6 @@ Logic: **LOCKED = HIGH**, **UNLOCKED = LOW**. Debounce: **40 ms**.
 - **Power:** USB 5V
 - **Logic (INPUT_PULLUP):** **LOCKED → HIGH**, **UNLOCKED → LOW**
 - **Debounce:** 40 ms
-**State legend (COM→GPIO21, NO→GND, INPUT_PULLUP):**
-| Lever / Latch | COM–NO contact | GPIO21 level | State      |
-|---------------|----------------|--------------|------------|
-| Not pressed   | OPEN           | HIGH         | LOCKED ✅  |
-| Pressed       | CLOSED to GND  | LOW          | UNLOCKED   |
+
 
 
