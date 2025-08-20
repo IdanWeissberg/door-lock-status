@@ -1,15 +1,15 @@
 # Decisions Log
 - Init project skeleton.
-- Board: Arduino Uno (also OK with ESP32-DevKitC; use LED_BUILTIN).
-- Reed switch: type = NO (normally-open).
-  Magnet orientation: label the magnet face that closes the switch at ~5–10 mm; mount so **door CLOSED → switch closed**.
-- Pins: SENSOR = D2, LED = LED_BUILTIN (fallback: D13 + 220Ω → GND).
-- Input mode: INPUT_PULLUP; wiring: REED between D2 and GND.
-- Logic (with INPUT_PULLUP):
-  - Magnet close (door CLOSED/locked)  → SENSOR = LOW
-  - Magnet away  (door OPEN/unlocked) → SENSOR = HIGH
-- LED mapping: CLOSED = ON, OPEN = OFF. (Invert later if you prefer the opposite.)
+- Board: ESP32 DevKitC.
+- Sensor: Microswitch (SPDT lever).
+- Input mode: INPUT_PULLUP.
+- Wiring: COM → GPIO21, NO → GND (swap to NC if the lever is pressed when locked).
+- Logic (with INPUT_PULLUP): LOCKED = HIGH (lever NOT pressed), UNLOCKED = LOW (lever pressed).
+- Pins: SENSOR = GPIO21, LED = GPIO2 (or onboard LED if present).
+- LED mapping: LOCKED = LED ON, UNLOCKED = LED OFF. (Invert in firmware if preferred.)
 - Debounce: 40 ms (minimum time between accepted state changes).
-- Serial: 115200 baud; print "OPEN"/"CLOSED" only on changes.
-- Power (dev): 5V via USB from PC/phone charger (no external PSU needed).
-- Artifacts to add: `hardware/wiring.png` (diagram), `hardware/wiring-photo.jpg` (real wiring).
+- Serial: 115200 baud; print "LOCKED"/"UNLOCKED" only on changes.
+- Power (dev): 5 V via USB (no external PSU required).
+- Optional noise suppression: 100 nF from GPIO21 to GND for long/noisy runs.
+- Artifacts to add: `hardware/door-lock-block.png`, `hardware/microswitch-wiring.png`, `hardware/microswitch-mount.jpg`.
+
