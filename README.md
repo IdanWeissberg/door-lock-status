@@ -39,16 +39,18 @@ Logic: **LOCKED = HIGH**, **UNLOCKED = LOW**. Debounce: **40 ms**.
 **Setup (photo):**
 - **Board:** ESP32 DevKitC
 - **Sensor:** Microswitch (SPDT lever), wired so that **LOCKED reads HIGH** with `INPUT_PULLUP`.
-  - Use **COM → GND** and connect **GPIO21** to the switch terminal **NO** that is **open** in the locked state (i.e., the pin is **not** pulled to GND when locked).
-  - Practical hint:
-    - If the lever is **not pressed** when the door is locked → use **NO → GPIO21**.
-    - If the lever **is pressed** when the door is locked → use **NC → GPIO21**.
+  - **COM → GPIO21**
+  - **NO  → GND**  (lever NOT pressed when locked → pin is OPEN → HIGH)
+  - If your latch **presses** the lever when locked, use **NC → GND** instead (to keep LOCKED = HIGH).
 - **ESP32 pin config:** `SENSOR_PIN = GPIO21` configured as `INPUT_PULLUP`
-- **LED:** `GPIO2` (onboard) — or external LED: `GPIO2 → 220Ω → LED anode → GND`
+- **LED:** `GPIO2` (onboard) — or external: `GPIO2 → 220Ω → LED anode → GND`
 - **Power:** USB 5V
 - **Logic (INPUT_PULLUP):** **LOCKED → HIGH**, **UNLOCKED → LOW**
 - **Debounce:** 40 ms
-
-
+**State legend (COM→GPIO21, NO→GND, INPUT_PULLUP):**
+| Lever / Latch | COM–NO contact | GPIO21 level | State      |
+|---------------|----------------|--------------|------------|
+| Not pressed   | OPEN           | HIGH         | LOCKED ✅  |
+| Pressed       | CLOSED to GND  | LOW          | UNLOCKED   |
 
 
