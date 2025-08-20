@@ -1,5 +1,5 @@
 # Bill of Materials (BOM)
-- Reed switch (NO) + magnet
+- Micro switch
 - Resistors kit (e.g., 220Ω, 10kΩ)
 - Breadboard + jumpers
 - Arduino/ESP32
