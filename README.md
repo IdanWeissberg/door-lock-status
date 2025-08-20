@@ -1,6 +1,5 @@
-# Door Lock Status (חיווי נעילת דלת בריח)
-
-Starter structure for a door-lock status indicator using a reed switch + magnet and Arduino/ESP32.
+# Door Lock Status
+Starter structure for a door-lock status indicator using a **microswitch (SPDT lever)** and Arduino/ESP32.
 
 ## Why this skeleton?
 - Clean folders: `hardware/`, `firmware/`, `docs/`, `test/`
@@ -14,14 +13,14 @@ Starter structure for a door-lock status indicator using a reed switch + magnet 
 - `docs/` – notes and decisions.
 - `test/` – quick checks.
 
-## Roadmap (example)
+## Roadmap 
 - [ ] MVP: LED shows locked/unlocked
 - [ ] Buzzer when door left open
 - [ ] Optional: phone notification
 - [ ] Enclosure tidy-up
 
 ## License
-MIT (already in your repo).
+MIT 
 
 Setup confirmed via GitHub Desktop.
 
@@ -29,14 +28,21 @@ Setup confirmed via GitHub Desktop.
 ![Block diagram](hardware/door-lock-wiring.png)
 
 ## Real wiring (MVP)
-![Real wiring – ESP32 DevKitC, reed on GPIO21 to GND, LED on GPIO2](hardware/door-lock-abtipus.jpeg)
+![Real wiring – ESP32 DevKitC, microswitch on GPIO21, LED on GPIO2](hardware/door-lock-abtipus.jpeg)
 
 **Setup (photo):**
-- Board: ESP32 DevKitC
-- Sensor: Reed switch (NO), between **GPIO21** and **GND** (using `INPUT_PULLUP`)
-- LED: **GPIO2** (onboard) — or external LED with 220Ω → GND
-- Power: USB 5V
-- Logic (INPUT_PULLUP): **CLOSED → LOW**, **OPEN → HIGH**
-- Magnet distance ~5–10 mm; face labeled for consistent closure
+- **Board:** ESP32 DevKitC
+- **Sensor:** Microswitch (SPDT lever), wired so that **LOCKED reads HIGH** with `INPUT_PULLUP`.
+  - Use **COM → GND** and connect **GPIO21** to the switch terminal (**NO** or **NC**) that is **open** in the locked state (i.e., the pin is **not** pulled to GND when locked).
+  - Practical hint:
+    - If the lever is **not pressed** when the door is locked → use **NO → GPIO21**.
+    - If the lever **is pressed** when the door is locked → use **NC → GPIO21**.
+- **ESP32 pin config:** `SENSOR_PIN = GPIO21` configured as `INPUT_PULLUP`
+- **LED:** `GPIO2` (onboard) — or external LED: `GPIO2 → 220Ω → LED anode → GND`
+- **Power:** USB 5V
+- **Logic (INPUT_PULLUP):** **LOCKED → HIGH**, **UNLOCKED → LOW**
+- **Debounce:** 40 ms
+
+
 
 
