@@ -48,5 +48,39 @@ Logic: **LOCKED = HIGH**, **UNLOCKED = LOW**. Debounce: **40 ms**.
 - **Logic (INPUT_PULLUP):** **LOCKED → HIGH**, **UNLOCKED → LOW**
 - **Debounce:** 40 ms
 
+### Phone UI (Local Web over STA)
+
+**Goal:** View the door state on a phone over the home Wi-Fi (no internet required).
+
+**How to access**
+1. Power the ESP32 and let it join the home Wi-Fi (STA mode).
+2. Find its IP on the LAN (see below).
+3. On your phone (same Wi-Fi), open `http://<ESP32-IP>/`.
+4. The page shows the state and auto-updates.
+   - Text is exactly: **Locked** or **Unlock**.
+
+**Find the ESP32 IP**
+- **Serial Monitor:** on boot, the firmware prints the assigned IP (DHCP).
+- **Router UI / App:** check the connected devices list.
+- **Network scanner:** e.g., Fing app on the phone (scan the LAN).
+
+**Direct status endpoint**
+- `http://<ESP32-IP>/status` → returns **Locked** or **Unlock** (`text/plain`, not cached).
+
+**Troubleshooting**
+- Phone and ESP32 must be on the **same Wi-Fi/LAN**.
+- If the page doesn’t load: verify the IP hasn’t changed; try airplane mode ON then Wi-Fi ON (prevents cellular “smart switch”).
+- Use **http** (not https) for local access.
+- Some routers rotate IPs; re-check after reboot.
+
+**Security (MVP)**
+- Local LAN only. No internet exposure. For now, no login on the page.
+
+**Out of scope (later)**
+- Remote access outside home, HTTPS/TLS, auth, mDNS hostname, Wi-Fi config portal.
+
+**Acceptance reminder**
+- The UI reflects **Locked/Unlock** within ≤ 1 s from a sensor change (incl. debounce + polling).
+
 
 
