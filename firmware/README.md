@@ -9,11 +9,13 @@ Stable input with `INPUT_PULLUP`, simple 40 ms debounce, and clear Serial logs.
 - LED: GPIO2
 - Logic: CLOSED=LOW → LED ON, OPEN=HIGH → LED OFF
 
-## Build & Flash (How)
+## Build & Flash 
 1. Board: ESP32 Dev Module
 2. Tools → Port: your ESP32 port
 3. Serial Monitor: 115200 baud
 4. Upload and observe `OPEN`/`CLOSED` printed only on state changes.
+5. Serial Monitor baud: 115200
+
 
 ## Debounce
 Timing-based (40 ms). Increase to 60–80 ms if you see chatter.
