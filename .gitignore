@@ -20,3 +20,4 @@ build/
 *.zip
 *.tar
 *.tar.gz
+firmware/secrets.h
