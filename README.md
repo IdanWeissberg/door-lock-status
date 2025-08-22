@@ -78,8 +78,37 @@ Logic: **LOCKED = HIGH**, **UNLOCKED = LOW**. Debounce: **40 ms**.
 
 **Out of scope (later)**
 - Remote access outside home, HTTPS/TLS, auth, mDNS hostname, Wi-Fi config portal.
+# ESP32 Wi-Fi (STA) — How it works
 
-**Acceptance reminder**
+## Lifecycle
+1) Boot → bring up radio
+2) Scan → find SSID
+3) Join + WPA2-PSK handshake
+4) DHCP → get IP/Gateway/DNS
+5) Online (LAN)
+
+## Requirements
+- 2.4 GHz enabled, WPA2-PSK (AES), no captive portal
+- Phone and ESP32 on the same LAN (no guest isolation)
+- Exact SSID/password
+
+## Verify
+- Router “Connected devices”: ESP32 appears with an IP
+- Optional: ping the IP from phone/PC
+- Next: set a DHCP reservation for a stable local IP
+
+## Common Issues
+- Wrong SSID/password → fix exact spelling/case
+- 5 GHz only → enable/split 2.4 GHz SSID (or IoT/Guest 2.4)
+- Guest isolation → disable or avoid guest network
+- WPA3-only/Portal → allow WPA2-PSK, remove portal
+- Weak RSSI → move closer / use channels 1/6/11 @ 20 MHz
+
+## Security
+- Keep Wi-Fi creds locally (ignored by git)
+- LAN-only access for the MVP
+
+
 - The UI reflects **Locked/Unlock** within ≤ 1 s from a sensor change (incl. debounce + polling).
 
 
