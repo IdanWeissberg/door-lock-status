@@ -24,4 +24,8 @@
 - HTTP endpoints:
   - GET / → minimal page that polls `/status` every 500 ms.
   - GET /status → 200 text/plain; Cache-Control: no-store; body: Locked | Unlock.
+## Phone UI — Status Semantics (FINAL for MVP)
+- Network: STA (ESP32 joins home Wi-Fi). Static IP used (e.g., 192.168.1.70).
+- `/status` returns exact strings: `Unlock` when SENSOR=LOW, `Locked` when SENSOR=HIGH.
+- Serial labels remain `CLOSED/OPEN` per raw switch state (active-low). This mismatch is intentional for UI wording.
 
