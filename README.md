@@ -48,39 +48,45 @@ Logic: **LOCKED = HIGH**, **UNLOCKED = LOW**. Debounce: **40 ms**.
 - **Logic (INPUT_PULLUP):** **LOCKED → HIGH**, **UNLOCKED → LOW**
 - **Debounce:** 40 ms
 
-## Phone UI (Local Web over STA) — Quickstart
+## Phone UI (door.local) — Quickstart
 
-**Goal:** View the door state from your phone over the home Wi-Fi.  
-**Static IP (example):** 192.168.1.70
+**Goal:** View the door state from your phone over your home Wi-Fi.  
+**Address:** `http://door.local` (mDNS) — no static IP required.
 
 ### Requirements
 - ESP32 on 2.4 GHz Wi-Fi (WPA2-PSK).
-- `secrets.h` locally with correct SSID/PASS (not committed).
-- Firmware flashed with static IP set (e.g., 192.168.1.70).
+- `secrets.h` locally with correct SSID/PASS (do not commit).
+- Firmware flashed (`firmware/door_lock_mvp/door_lock_mvp.ino`) with mDNS enabled.
 
 ### How to access
-- From a phone on the same Wi-Fi: open `http://192.168.1.70/` (UI page — TBD)  
-- Direct status endpoint: `http://192.168.1.70/status` → returns **Unlock** or **Locked** (`text/plain`, `Cache-Control: no-store`)
+- **Preferred:** open **`http://door.local`** from a phone on the same SSID/LAN (not Guest/Isolation).
+- **Fallback:** open `http://<IP-from-Serial>/` (printed after boot in Serial Monitor).
 
-### Status semantics (final for MVP)
-- **/status**
-  - `Unlock` → sensor **LOW** (microswitch closed)  
-  - `Locked` → sensor **HIGH** (microswitch open)
-- **Serial logs** print `CLOSED` / `OPEN` (raw switch concept).  
-  *Intentional mismatch for clearer UI wording.*
+### Endpoints
+- `GET /` → HTML mobile UI (auto-refresh every 0.5 s)
+- `GET /status` → `Unlock` or `Locked` (`text/plain`, `Cache-Control: no-store`)
+- `GET /api/status` → JSON  
+  `{ "locked": bool, "label": "Unlock|Locked", "sensor_gpio": 21, "led_gpio": 2, "uptime_ms": <number> }`
+- `GET /api/health` → `ok`
+- `GET /api/info` → JSON  
+  `{ "hostname": "door", "ip": "...", "mac": "...", "rssi": <dBm>, "version": "1.0.0" }`
 
-### Test plan (manual)
-1. Power ESP32; confirm Serial shows `WiFi: connected, IP = 192.168.1.70`.
-2. From phone: open `http://192.168.1.70/status` → see `Unlock` or `Locked`.
-3. Toggle the microswitch → status changes within ≤ 1 s.
-4. (When UI page `/` is added) open `http://192.168.1.70/` → label/color updates automatically.
+### Status semantics (MVP)
+- `Unlock` ↔ sensor **LOW** (microswitch pressed/closed)  
+- `Locked` ↔ sensor **HIGH** (microswitch released/open)  
+- Serial logs print `CLOSED` / `OPEN` (raw switch semantics)
+
+### Test (manual)
+1. Flash and open Serial (115200) → look for `mDNS: http://door.local`.
+2. On your phone: open `http://door.local` and verify the label/color.
+3. Toggle the microswitch → status updates within ≤ 1 s.
+4. Optional checks:  
+   `curl http://door.local/status` • `curl http://door.local/api/status`
 
 ### Troubleshooting
-- Same LAN: phone and ESP32 must be on the same Wi-Fi/LAN.
-- If page doesn’t load: recheck the IP; try airplane-mode ON → Wi-Fi ON (prevents cellular hijack).
-- Use **http** (not https) on LAN.
-- If IP conflicts: pick another static IP in the same subnet (e.g., 192.168.1.150), flash again.
+- Phone and ESP32 must be on the **same SSID** (not Guest/Isolation).
+- If `door.local` doesn’t resolve, use the printed IP and verify mDNS on your LAN.
+- Keep `secrets.h` out of Git (add to `.gitignore`).
 
-### Security (MVP)
-- LAN-only; no internet exposure.
-- No login on the page at this stage.
+### Notes
+- Static IP is **optional**. If you want one later, set a DHCP reservation in your router (no firmware changes needed).
