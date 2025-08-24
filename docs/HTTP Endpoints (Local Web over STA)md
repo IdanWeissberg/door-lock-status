@@ -1,0 +1,18 @@
+# HTTP Endpoints (Local Web over STA)
+
+## GET /status
+- Purpose: Phone UI polling endpoint for live door state.
+- Response: 
+  - 200 OK, `Content-Type: text/plain`
+  - `Cache-Control: no-store`
+  - Body: `Unlock` | `Locked` (exact strings, case-sensitive)
+- Semantics:
+  - `Unlock` → sensor LOW (microswitch closed, INPUT_PULLUP active-low)
+  - `Locked` → sensor HIGH (microswitch open)
+- Notes:
+  - Serial logs print `CLOSED` / `OPEN` following the raw switch concept.
+  - HTTP labels differ on purpose for UI wording. Keep as-is unless decided otherwise.
+
+## GET /
+- (Next step) Minimal page that shows the state and auto-refreshes every ~500 ms.
+- Out of scope in this commit; tracked in the UI task.
