@@ -17,4 +17,15 @@
 - Logic mapping: CLOSED=LOW → LED ON (GPIO2).
 - Debounce: 40 ms (tunable if mechanical chatter observed).
 - Rationale: keep firmware agnostic to the mechanical sensor; final choice deferred to mechanical stage.
+## Mobile UI — Local Web (STA)
+- Network mode: Station (ESP32 joins home Wi-Fi; phone on same LAN).
+- Status strings (exact): "Locked" / "Unlock".
+- Logic mapping: SENSOR=GPIO21, INPUT_PULLUP; LOW=Locked (LED ON), HIGH=Unlock (LED OFF); debounce=40ms.
+- HTTP endpoints:
+  - GET / → minimal page that polls `/status` every 500 ms.
+  - GET /status → 200 text/plain; Cache-Control: no-store; body: Locked | Unlock.
+## Phone UI — Status Semantics (FINAL for MVP)
+- Network: STA (ESP32 joins home Wi-Fi). Static IP used (e.g., 192.168.1.70).
+- `/status` returns exact strings: `Unlock` when SENSOR=LOW, `Locked` when SENSOR=HIGH.
+- Serial labels remain `CLOSED/OPEN` per raw switch state (active-low). This mismatch is intentional for UI wording.
 

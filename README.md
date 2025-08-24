@@ -48,5 +48,39 @@ Logic: **LOCKED = HIGH**, **UNLOCKED = LOW**. Debounce: **40 ms**.
 - **Logic (INPUT_PULLUP):** **LOCKED → HIGH**, **UNLOCKED → LOW**
 - **Debounce:** 40 ms
 
+## Phone UI (Local Web over STA) — Quickstart
 
+**Goal:** View the door state from your phone over the home Wi-Fi.  
+**Static IP (example):** 192.168.1.70
 
+### Requirements
+- ESP32 on 2.4 GHz Wi-Fi (WPA2-PSK).
+- `secrets.h` locally with correct SSID/PASS (not committed).
+- Firmware flashed with static IP set (e.g., 192.168.1.70).
+
+### How to access
+- From a phone on the same Wi-Fi: open `http://192.168.1.70/` (UI page — TBD)  
+- Direct status endpoint: `http://192.168.1.70/status` → returns **Unlock** or **Locked** (`text/plain`, `Cache-Control: no-store`)
+
+### Status semantics (final for MVP)
+- **/status**
+  - `Unlock` → sensor **LOW** (microswitch closed)  
+  - `Locked` → sensor **HIGH** (microswitch open)
+- **Serial logs** print `CLOSED` / `OPEN` (raw switch concept).  
+  *Intentional mismatch for clearer UI wording.*
+
+### Test plan (manual)
+1. Power ESP32; confirm Serial shows `WiFi: connected, IP = 192.168.1.70`.
+2. From phone: open `http://192.168.1.70/status` → see `Unlock` or `Locked`.
+3. Toggle the microswitch → status changes within ≤ 1 s.
+4. (When UI page `/` is added) open `http://192.168.1.70/` → label/color updates automatically.
+
+### Troubleshooting
+- Same LAN: phone and ESP32 must be on the same Wi-Fi/LAN.
+- If page doesn’t load: recheck the IP; try airplane-mode ON → Wi-Fi ON (prevents cellular hijack).
+- Use **http** (not https) on LAN.
+- If IP conflicts: pick another static IP in the same subnet (e.g., 192.168.1.150), flash again.
+
+### Security (MVP)
+- LAN-only; no internet exposure.
+- No login on the page at this stage.
