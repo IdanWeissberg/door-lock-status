@@ -92,4 +92,4 @@ Logic: **LOCKED = HIGH**, **UNLOCKED = LOW**. Debounce: **40 ms**.
 - Static IP is **optional**. If you want one later, set a DHCP reservation in your router (no firmware changes needed).
 
 ###
-![Block diagram](hardware/door-lock-block.png)
+![Block diagram](docs/door_ui_states_merged.png)
