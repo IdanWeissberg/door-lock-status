@@ -15,7 +15,6 @@ Starter structure for a door-lock status indicator using a **microswitch (SPDT l
 
 ## Roadmap 
 - [ ] MVP: LED shows locked/unlocked
-- [ ] Buzzer when door left open
 - [ ] Optional: phone notification
 - [ ] Enclosure tidy-up
 
