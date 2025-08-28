@@ -1,17 +1,29 @@
 /*
-  Door Lock Status (ESP32 + microswitch + Arduino IoT Cloud)
-  - Reads microswitch on GPIO21 (INPUT_PULLUP), drives LED on GPIO2.
-  - Local phone UI: http://door.local (mDNS) | /status returns "Unlock"/"Locked".
-  - Cloud: publishes boolean 'locked' (true = Locked) on debounced changes.
+  Door Lock Status (ESP32 + microswitch)
+  PURPOSE: Read a microswitch (GPIO21), drive LED (GPIO2), and serve a phone UI.
+  NOTES:
+    - Serial prints CLOSED/OPEN (raw switch semantics).
+    - HTTP /status returns Unlock/Locked (UI wording for the phone UI).
+    - Uses mDNS → access via http://door.local (no need for fixed IP in router).
 */
 
 #include <WiFi.h>
-#include <WebServer.h>
-#include <ESPmDNS.h>
-#include <ArduinoIoTCloud.h>     // Cloud core
-#include "thingProperties.h"     // <-- from Arduino IoT Cloud (must exist in this sketch)
+#include "secrets.h"     // Defines WIFI_SSID / WIFI_PASS (keep this file local; don't commit)
+#include <WebServer.h>   // Lightweight HTTP server (ESP32 Arduino core)
+#include <ESPmDNS.h>     // mDNS for 'door.local'
+#include <ArduinoIoTCloud.h>          // [ADD] Cloud core
+#include "arduino_secrets.h"          // [ADD] 
+#include "thingProperties.h"          // [ADD] 
 
-// ---------------- HTML (served at "/") ----------------
+
+
+// --- Network (static IP attempt; DHCP fallback in code below) ---
+IPAddress local_IP(192,168,1,70);
+IPAddress gateway(192,168,1,1);
+IPAddress subnet(255,255,255,0);
+IPAddress dns(192,168,1,1);
+
+// --- Minimal mobile-first UI (served at GET /) ---
 static const char INDEX_HTML[] PROGMEM = R"rawliteral(
 <!doctype html><html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -50,112 +62,181 @@ const box=document.getElementById('statusBox');
 const ip=document.getElementById('ip');
 const upd=document.getElementById('updated');
 const btn=document.getElementById('refresh');
-ip.textContent=location.host;
+ip.textContent=location.host; // show host (IP or door.local)
 async function fetchStatus(){
   try{
-    const r=await fetch('/status',{cache:'no-store'});
+    const r=await fetch('/status',{cache:'no-store'}); // avoid stale responses
     const t=(await r.text()).trim(); // "Locked" | "Unlock"
     box.textContent=t;
-    document.body.className=(t==='Locked')?'locked':'unlocked';
+    document.body.className=(t==='Locked')?'locked':'unlocked'; // update color
     upd.textContent='Last update: '+new Date().toLocaleTimeString();
-  }catch(e){ box.textContent='—'; upd.textContent='Last update: error'; }
+  }catch(e){
+    box.textContent='—'; upd.textContent='Last update: error';
+  }
 }
 btn.addEventListener('click',fetchStatus);
-fetchStatus(); setInterval(fetchStatus,500);
+fetchStatus(); setInterval(fetchStatus,500); // auto-refresh every 0.5s
 </script>
 </body></html>
 )rawliteral";
 
-// ---------------- HTTP server ----------------
-WebServer server(80);
+WebServer server(80); // HTTP listens on port 80
 
-// ---------------- Pins & debounce ----------------
-const int SENSOR  = 21;   // microswitch → GPIO21 to GND (active-low)
-const int LED_PIN = 2;    // LED (through ~220Ω) to GND; HIGH = ON
-const unsigned long DEBOUNCE_MS = 40;
+// --- Hardware pins ---
+const int SENSOR  = 21; // Microswitch → GPIO21 to GND (INPUT_PULLUP active-low)
+const int LED_PIN = 2;  // LED (through ~220Ω) to GND; HIGH = LED ON
 
-int lastReading;              // latest raw read
-int stableState;              // debounced state (LOW/HIGH)
-unsigned long lastChangeMs;   // when a raw change first seen
+// --- Debounce state ---
+const unsigned long DEBOUNCE_MS = 40; // Non-blocking debounce window
+int lastReading;       // Last raw sample (can bounce)
+int stableState;       // Debounced (committed) state
+unsigned long lastChangeMs; // Timestamp when raw change first seen
 
-// ---------------- Handlers ----------------
-void handleRoot() {
+// Serve HTML page at "/"
+void handleRoot(){
+  // Use String() to avoid overload issues across core versions
   server.send(200, "text/html", String(INDEX_HTML));
 }
 
-// UI wording: LOW => "Unlock", HIGH => "Locked"
+// Plain-text state for the phone UI at "/status"
+// IMPORTANT mapping: LOW => "Unlock", HIGH => "Locked" (as per your UI wording)
 void handleStatus() {
   server.sendHeader("Cache-Control", "no-store");
   server.send(200, "text/plain", (stableState == LOW) ? "Unlock" : "Locked");
 }
 
-void setup() {
-  Serial.begin(115200);
+// Wi-Fi connect: try static IP first; if association/timeout → DHCP fallback
+bool connectWiFi() {
+  WiFi.persistent(false);          // avoid writing creds to flash
+  WiFi.disconnect(true, true);     // clear previous state
+  WiFi.mode(WIFI_OFF);             // hard reset radio (helps stuck states)
+  delay(200);
+  WiFi.mode(WIFI_STA);             // station mode (join existing Wi-Fi)
+  WiFi.setSleep(false);            // keep radio awake for responsive HTTP
+  WiFi.setAutoReconnect(true);     // auto-reconnect on drops
 
-  // --- Cloud bring-up (manages Wi-Fi) ---
-  initProperties();                                      // binds Cloud vars (e.g., 'locked')
-  ArduinoCloud.begin(ArduinoIoTPreferredConnection);     // connect to Arduino IoT Cloud
-  setDebugMessageLevel(2); ArduinoCloud.printDebugInfo();
+  // --- Attempt static IP (your preference) ---
+  WiFi.setHostname("door");        // hostname (helps router & mDNS)
+  bool ok = WiFi.config(local_IP, gateway, subnet, dns);
+  Serial.print("WiFi.config: "); Serial.println(ok ? "OK" : "FAIL");
 
-  // Optionally wait a bit for Wi-Fi before starting services
+  WiFi.begin(WIFI_SSID, WIFI_PASS);
+  Serial.print("WiFi (static): connecting");
   unsigned long t0 = millis();
-  while (WiFi.status() != WL_CONNECTED && millis() - t0 < 15000) delay(100);
+  while (WiFi.status() != WL_CONNECTED && millis() - t0 < 15000) {
+    Serial.print(".");
+    delay(250);
+  }
+  Serial.println();
 
-  // --- HTTP endpoints ---
+  if (WiFi.status() == WL_CONNECTED) {
+    Serial.print("WiFi: connected (static), IP = ");
+    Serial.println(WiFi.localIP()); // expected 192.168.1.70 if router allows
+    return true;
+  }
+
+  // --- DHCP fallback: keeps UI available even if static is refused ---
+  Serial.println("WiFi: static failed → DHCP fallback");
+  WiFi.disconnect(true, true);
+  delay(200);
+  WiFi.mode(WIFI_STA);
+  WiFi.setHostname("door");        // set again (safe)
+  WiFi.begin(WIFI_SSID, WIFI_PASS);
+  Serial.print("WiFi (DHCP): connecting");
+  t0 = millis();
+  while (WiFi.status() != WL_CONNECTED && millis() - t0 < 15000) {
+    Serial.print(".");
+    delay(250);
+  }
+  Serial.println();
+
+  if (WiFi.status() == WL_CONNECTED) {
+    Serial.print("WiFi: connected (DHCP), IP = ");
+    Serial.println(WiFi.localIP());
+    return true;
+  }
+
+  Serial.println("WiFi: FAILED (timeout)"); // check SSID/pass, 2.4GHz, isolation, etc.
+  return false;
+}
+
+void setup() {
+  Serial.begin(115200); // diagnostics baud rate
+
+  // --- Wi-Fi bring-up ---
+  connectWiFi();
+  initProperties();                                        // [ADD]
+  ArduinoCloud.begin(ArduinoIoTPreferredConnection);       // [ADD]
+  setDebugMessageLevel(2); ArduinoCloud.printDebugInfo();  // [ADD] 
+
+
+  // --- HTTP routes ---
   server.on("/", handleRoot);
   server.on("/status", handleStatus);
   server.onNotFound([](){ server.send(404, "text/plain", "Not found"); });
-  server.begin();
+  server.begin(); // start HTTP server
 
-  // --- mDNS (door.local) ---
+  // --- mDNS: 'http://door.local' name ---
   if (MDNS.begin("door")) {
     MDNS.addService("http", "tcp", 80);
     Serial.println("mDNS: http://door.local");
   } else {
     Serial.println("mDNS: FAILED");
   }
-  Serial.print("MAC: "); Serial.println(WiFi.macAddress());
+  Serial.print("MAC: "); Serial.println(WiFi.macAddress()); // for a future DHCP reservation if you want
 
-  // --- GPIOs ---
-  pinMode(SENSOR, INPUT_PULLUP);
-  pinMode(LED_PIN, OUTPUT);
+  // --- GPIO init ---
+  pinMode(SENSOR, INPUT_PULLUP); // active-low input; idle HIGH when open
+  pinMode(LED_PIN, OUTPUT);      // LED output
 
-  // Initial state → LED + Serial + Cloud
-  int first = digitalRead(SENSOR);
-  stableState  = first;
-  lastReading  = first;
+  // Initial read → set LED + one-time Serial line (CLOSED/OPEN)
+  if (digitalRead(SENSOR) == LOW) {
+    digitalWrite(LED_PIN, HIGH);  // LED ON
+    Serial.println("CLOSED");
+  } else {
+    digitalWrite(LED_PIN, LOW);   // LED OFF
+    Serial.println("OPEN");
+  }
+
+  // Debounce baseline
+  lastReading  = digitalRead(SENSOR);
+  stableState  = lastReading;
   lastChangeMs = millis();
-
-  if (first == LOW) { digitalWrite(LED_PIN, HIGH); Serial.println("CLOSED"); }
-  else              { digitalWrite(LED_PIN, LOW ); Serial.println("OPEN");   }
-
-  // Cloud semantics: true = Locked (sensor HIGH)
-  locked = (first == HIGH);
+  lock = (stableState == HIGH);  
 }
 
 void loop() {
-  ArduinoCloud.update();  // keep Cloud connection alive & sync variables
+  ArduinoCloud.update();                                   
 
-  // ---- Non-blocking debounce ----
-  int reading = digitalRead(SENSOR);
-  if (reading != lastReading) {        // raw edge detected → restart window
+  // --- Non-blocking debounce ---
+  int reading = digitalRead(SENSOR); // raw sample each loop
+
+  // if raw changed → restart debounce window
+  if (reading != lastReading) {
     lastReading  = reading;
     lastChangeMs = millis();
   }
 
+  // commit when stable long enough and differs from current stableState
   if ((millis() - lastChangeMs) >= DEBOUNCE_MS &&
       reading == lastReading &&
       lastReading != stableState) {
 
-    stableState = lastReading;         // commit debounced state
+    stableState = lastReading; // accept debounced state
 
-    // LED + Serial (raw semantics)
-    if (stableState == LOW) { digitalWrite(LED_PIN, HIGH); Serial.println("CLOSED"); }
-    else                    { digitalWrite(LED_PIN, LOW ); Serial.println("OPEN");   }
-
-    // Publish to Cloud once per stable change (true = Locked)
-    locked = (stableState == HIGH);
+    // Apply LED + Serial (CLOSED/OPEN wording)
+    if (stableState == LOW) {
+      digitalWrite(LED_PIN, HIGH); // LED ON
+      Serial.println("CLOSED");
+    } else {
+      digitalWrite(LED_PIN, LOW);  // LED OFF
+      Serial.println("OPEN");
+    }
+    lock = (stableState == HIGH);
   }
 
-  server.handleClient();  // serve HTTP
-}
+  // --- Serve any pending HTTP requests ---
+  server.handleClient();
+
+  // no delay(); keep loop responsive
+} 

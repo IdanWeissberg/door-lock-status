@@ -18,3 +18,4 @@ Thumbs.db
 **/secrets.h
 firmware/**/secrets.h
 firmware/door_lock_mvp/thingProperties.h
+firmware/door_lock_mvp/arduino_secrets.h
