@@ -17,3 +17,4 @@ Thumbs.db
 # Local secrets (never commit)
 **/secrets.h
 firmware/**/secrets.h
+firmware/door_lock_mvp/thingProperties.h
