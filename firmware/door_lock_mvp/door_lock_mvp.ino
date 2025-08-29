@@ -104,6 +104,9 @@ void handleStatus() {
   server.sendHeader("Cache-Control", "no-store");
   server.send(200, "text/plain", (stableState == LOW) ? "Unlock" : "Locked");
 }
+void onIsLockedChange() {
+  // Ignore remote writes: state is hardware-driven only.
+}  
 
 // Wi-Fi connect: try static IP first; if association/timeout → DHCP fallback
 bool connectWiFi() {
@@ -202,7 +205,9 @@ void setup() {
   lastReading  = digitalRead(SENSOR);
   stableState  = lastReading;
   lastChangeMs = millis();
-  lock = (stableState == HIGH);  
+  isLocked = (stableState == HIGH);                 // true = Locked (HIGH per your /status)
+  lockText = isLocked ? "Locked" : "Unlock";        // text for the Value widget
+ 
 }
 
 void loop() {
@@ -232,11 +237,16 @@ void loop() {
       digitalWrite(LED_PIN, LOW);  // LED OFF
       Serial.println("OPEN");
     }
-    lock = (stableState == HIGH);
+    bool locked = (stableState == HIGH);   // HIGH = Locked (matches /status)
+    isLocked = locked;                     // cloud boolean
+    lockText = locked ? "Locked" : "Unlock"; // cloud text
+
+
   }
 
   // --- Serve any pending HTTP requests ---
   server.handleClient();
+
 
   // no delay(); keep loop responsive
 } 
