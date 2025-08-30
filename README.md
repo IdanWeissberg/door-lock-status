@@ -14,14 +14,11 @@ Starter structure for a door-lock status indicator using a **microswitch (SPDT l
 - `test/` – quick checks.
 
 ## Roadmap 
-- [ ] MVP: LED shows locked/unlocked
-- [ ] Optional: phone notification
-- [ ] Enclosure tidy-up
+- [ ] MVP: LED shows locked/unlocked ,phone notification.
+- [ ] Installtion on house door.
 
 ## License
 MIT 
-
-Setup confirmed via GitHub Desktop.
 
 ## Architecture (Block Diagram)
 ![Block diagram](hardware/Diagram_block.jpg)
