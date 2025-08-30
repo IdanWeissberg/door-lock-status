@@ -127,6 +127,7 @@ lockText = locked ? "Locked" : "Unlock"; // dashboard text
 // Callback (ignore remote writes):
 void onIsLockedChange() { /* hardware-driven only */ }
 
+
 ###
-![Block diagram](docs/door_ui_states_merged.jpng)
+![Block diagram](docs/door_lock_status_merged.jpg).
 
