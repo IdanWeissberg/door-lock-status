@@ -17,7 +17,7 @@ This page presents a simple yet functional **door lock status indicator** based 
 ---
 
 ## 📊 System Diagram
-![Block diagram](hardware/Diagram_block.jpg).
+![Block diagram](hardware/Diagram_block.jpg)
 
 ---
 
