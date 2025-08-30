@@ -105,7 +105,12 @@ Logic: **LOCKED = HIGH**, **UNLOCKED = LOW**. Debounce: **40 ms**.
 | `isLocked` | Bool   | READWRITE  | On change     | Callback `onIsLockedChange()` ignores remote writes.   |
 | `lockText` | String | READ       | On change     | Shows “Locked/Unlock” in a Value widget.               |
 
+### Dashboard screenshot
+
+![Door lock status](docs/door_lock_status_merged.jpg)
+
 ### Firmware touchpoints
+
 ```cpp
 // includes
 #include <ArduinoIoTCloud.h>
@@ -120,14 +125,14 @@ ArduinoCloud.begin(ArduinoIoTPreferredConnection);
 ArduinoCloud.update(); // keep cloud in sync
 
 // On debounced state change:
-bool locked = (stableState == HIGH);     // HIGH = Locked (project decision)
-isLocked = locked;                       // dashboard boolean
-lockText = locked ? "Locked" : "Unlock"; // dashboard text
+bool locked = (stableState == HIGH);        // HIGH = Locked (project decision)
+isLocked = locked;                          // dashboard boolean
+lockText = locked ? "Locked" : "Unlocked";  // dashboard text
 
 // Callback (ignore remote writes):
 void onIsLockedChange() { /* hardware-driven only */ }
 
 
-###
-![Block diagram](docs/door_lock_status_merged.jpg).
+
+
 
