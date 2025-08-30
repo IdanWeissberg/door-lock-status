@@ -46,7 +46,6 @@ You can explore the full source code, documentation, and hardware photos here:
 
 ## 📸 Screenshots
 ![Dashboard](../docs/door_lock_status_merged.jpg)
+![Block diagram](../docs/door_ui_status_merged.jpg)
 
----
 
-✍️ *This page is automatically published via GitHub Pages.*
