@@ -17,7 +17,7 @@ This page presents a simple yet functional **door lock status indicator** based 
 ---
 
 ## 📊 System Diagram
-![Block diagram](hardware/Diagram_block.jpg)
+![Block diagram](hardware/Diagram_block.jpg).
 
 ---
 
@@ -31,7 +31,7 @@ This page presents a simple yet functional **door lock status indicator** based 
 
 ## 📂 Repository
 You can explore the full source code, documentation, and hardware photos here:  
-👉 [View on GitHub](https://github.com/IdanWeissberg/Door-lock-detector)
+👉 [View on GitHub](https://github.com/IdanWeissberg/Door-lock-status)
 
 ---
 
