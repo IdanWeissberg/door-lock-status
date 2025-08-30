@@ -12,12 +12,12 @@ This page presents a simple yet functional **door lock status indicator** based 
 - **Debounce:** 40 ms  
 - **Serial Baud:** 115200  
 
-![Wiring Diagram](../hardware/wiring-photo.jpg)
+![Real wiring — ESP32 DevKitC, microswitch COM→GPIO21, NO→GND](../hardware/Real_wiring_after_install.jpg)
 
 ---
 
 ## 📊 System Diagram
-![Block diagram](hardware/Diagram_block.jpg)
+![Block diagram](../hardware/Diagram_block.jpg)
 
 ---
 
