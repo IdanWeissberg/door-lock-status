@@ -102,7 +102,7 @@ void handleRoot(){
 // IMPORTANT mapping: LOW => "Unlock", HIGH => "Locked" (as per your UI wording)
 void handleStatus() {
   server.sendHeader("Cache-Control", "no-store");
-  server.send(200, "text/plain", (stableState == LOW) ? "Unlock" : "Locked");
+  server.send(200, "text/plain", (stableState == LOW) ? "Unlocked" : "Locked");
 }
 void onIsLockedChange() {
   // Ignore remote writes: state is hardware-driven only.
@@ -239,7 +239,7 @@ void loop() {
     }
     bool locked = (stableState == HIGH);   // HIGH = Locked (matches /status)
     isLocked = locked;                     // cloud boolean
-    lockText = locked ? "Locked" : "Unlock"; // cloud text
+    lockText = locked ? "Locked" : "Unlocked"; // cloud text
 
 
   }
