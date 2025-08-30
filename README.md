@@ -1,14 +1,11 @@
 # Door Lock Status
-Starter structure for a door-lock status indicator using a **microswitch (SPDT lever)** on an **ESP32**. Clean, minimal, and documented.
+Starter structure for a door-lock status indicator using a **microswitch (SPDT lever)** and Arduino/ESP32.
 
----
-
-## Why → What → How (at a glance)
-- **Why:** Know if the door is **Locked/Unlock** at home and (optionally) in Arduino Cloud.
-- **What:** Read a microswitch on **GPIO21**, debounce, map to **Locked/Unlocked**, mirror on LED (**GPIO2**), serve a tiny phone UI.
-- **How:** Wire switch + LED → flash the firmware → browse `http://door.local/` → (optional) bind Arduino Cloud dashboard widgets.
-
----
+## Why this skeleton?
+- Clean folders: `hardware/`, `firmware/`, `docs/`, `test/`
+- Ready `.gitignore`
+- Simple CI (GitHub Actions)
+- Keep code comments short and in English
 
 ## Folders
 - `hardware/` – wiring, BOM, photos.
@@ -16,55 +13,117 @@ Starter structure for a door-lock status indicator using a **microswitch (SPDT l
 - `docs/` – notes and decisions.
 - `test/` – quick checks.
 
-## Roadmap
-- [x] MVP: LED + phone UI (`/`, `/status`)
-- [x] Optional: Arduino Cloud dashboard (`isLocked`, `lockText`)
-- [ ] Enclosure tidy-up / notification
+## Roadmap 
+- [ ] MVP: LED shows locked/unlocked
+- [ ] Optional: phone notification
+- [ ] Enclosure tidy-up
 
 ## License
-MIT
+MIT 
 
----
+Setup confirmed via GitHub Desktop.
 
 ## Architecture (Block Diagram)
 ![Block diagram](hardware/door-lock-block.png)
 
 ## Real wiring (MVP)
-![Real wiring — ESP32 DevKitC, microswitch COM→GPIO21, NO/NC→GND](hardware/microswitch-wiring.png)
+![Real wiring — ESP32 DevKitC, microswitch COM→GPIO21, NO→GND](hardware/microswitch-wiring.png)
 
-**Wiring summary**
-- **Sensor (microswitch):** `SENSOR_PIN = GPIO21` as `INPUT_PULLUP`
-  - Typical: **COM → GPIO21**, **NO → GND** (lever **not** pressed when locked → pin is OPEN → **HIGH**)
-  - If your latch presses the lever when locked, use **NC → GND** (to keep **LOCKED = HIGH**).
-- **LED:** **GPIO2 → 220Ω → LED → GND**
+**Caption:** ESP32 DevKitC with microswitch **COM→GPIO21**, **NO→GND** (GPIO21 as `INPUT_PULLUP`).  
+LED on **GPIO2 → 220Ω → GND**.  
+Logic: **LOCKED = HIGH**, **UNLOCKED = LOW**. Debounce: **40 ms**.  
+*(If your latch presses the lever when locked, swap NO↔NC to keep LOCKED = HIGH.)*
+
+
+**Setup (photo):**
+- **Board:** ESP32 DevKitC
+- **Sensor:** Microswitch (SPDT lever), wired so that **LOCKED reads HIGH** with `INPUT_PULLUP`.
+  - **COM → GPIO21**
+  - **NO  → GND**  (lever NOT pressed when locked → pin is OPEN → HIGH)
+  - If your latch **presses** the lever when locked, use **NC → GND** instead (to keep LOCKED = HIGH).
+- **ESP32 pin config:** `SENSOR_PIN = GPIO21` configured as `INPUT_PULLUP`
+- **LED:** `GPIO2` (onboard) — or external: `GPIO2 → 220Ω → LED anode → GND`
 - **Power:** USB 5V
+- **Logic (INPUT_PULLUP):** **LOCKED → HIGH**, **UNLOCKED → LOW**
 - **Debounce:** 40 ms
 
-**State mapping (project decision)**
+## Phone UI (door.local) — Quickstart
 
-| Physical (microswitch) | `digitalRead` | Logical | LED (GPIO2) | Serial (raw) | `/status` text |
-|---|---:|---|---|---|---|
-| Lever released (door locked) | `HIGH` | **Locked** | OFF | `OPEN` | `Locked` |
-| Lever pressed (door unlock)  | `LOW`  | **Unlocked** | ON  | `CLOSED` | `Unlock` |
+**Goal:** View the door state from your phone over your home Wi-Fi.  
+**Address:** `http://door.local` (mDNS) — no static IP required.
 
-> Notes: INPUT_PULLUP means idle/open = HIGH. We keep **LOCKED = HIGH**.
+### Requirements
+- ESP32 on 2.4 GHz Wi-Fi (WPA2-PSK).
+- `secrets.h` locally with correct SSID/PASS (do not commit).
+- Firmware flashed (`firmware/door_lock_mvp/door_lock_mvp.ino`) with mDNS enabled.
 
----
+### How to access
+- **Preferred:** open **`http://door.local`** from a phone on the same SSID/LAN (not Guest/Isolation).
+- **Fallback:** open `http://<IP-from-Serial>/` (printed after boot in Serial Monitor).
 
-## Firmware (ESP32)
-- Sketch path: `firmware/door_lock_mvp/door_lock_mvp.ino`
-- Toolchain: Arduino IDE (ESP32 core), or Arduino CLI
+### Endpoints
+- `GET /` → HTML mobile UI (auto-refresh every 0.5 s)
+- `GET /status` → `Unlock` or `Locked` (`text/plain`, `Cache-Control: no-store`)
+- `GET /api/status` → JSON  
+  `{ "locked": bool, "label": "Unlock|Locked", "sensor_gpio": 21, "led_gpio": 2, "uptime_ms": <number> }`
+- `GET /api/health` → `ok`
+- `GET /api/info` → JSON  
+  `{ "hostname": "door", "ip": "...", "mac": "...", "rssi": <dBm>, "version": "1.0.0" }`
 
-**Secrets (keep local; don’t commit)**
-- `secrets.h` → `#define WIFI_SSID "..."` / `#define WIFI_PASS "..."` (local Wi-Fi)
-- `arduino_secrets.h` → Arduino Cloud credentials (if using Cloud)
+### Status semantics (MVP)
+- `Unlock` ↔ sensor **LOW** (microswitch pressed/closed)  
+- `Locked` ↔ sensor **HIGH** (microswitch released/open)  
+- Serial logs print `CLOSED` / `OPEN` (raw switch semantics)
 
-**Key includes you will see in the sketch**
+### Test (manual)
+1. Flash and open Serial (115200) → look for `mDNS: http://door.local`.
+2. On your phone: open `http://door.local` and verify the label/color.
+3. Toggle the microswitch → status updates within ≤ 1 s.
+4. Optional checks:  
+   `curl http://door.local/status` • `curl http://door.local/api/status`
+
+### Troubleshooting
+- Phone and ESP32 must be on the **same SSID** (not Guest/Isolation).
+- If `door.local` doesn’t resolve, use the printed IP and verify mDNS on your LAN.
+- Keep `secrets.h` out of Git (add to `.gitignore`).
+
+### Notes
+- Static IP is **optional**. If you want one later, set a DHCP reservation in your router (no firmware changes needed).
+
+###
+![Block diagram](docs/door_ui_states_merged.png)
+
+## Arduino Cloud Dashboard (optional)
+
+**Goal:** Mirror the door state to Arduino Cloud so the dashboard shows:
+- **Status** (green/red) bound to **`isLocked`** (Bool)
+- **Value** (text) bound to **`lockText`** (String): `"Locked"` / `"Unlock"`
+
+### Cloud variables (Thing)
+| Name       | Type   | Permission | Update policy | Notes                                                 |
+|------------|--------|------------|---------------|--------------------------------------------------------|
+| `isLocked` | Bool   | READWRITE  | On change     | Callback `onIsLockedChange()` ignores remote writes.   |
+| `lockText` | String | READ       | On change     | Shows “Locked/Unlock” in a Value widget.               |
+
+### Firmware touchpoints
 ```cpp
-#include <WiFi.h>
-#include <WebServer.h>
-#include <ESPmDNS.h>
+// includes
 #include <ArduinoIoTCloud.h>
-#include "secrets.h"           // local Wi-Fi (do not commit)
-#include "arduino_secrets.h"   // Arduino Cloud (do not commit)
-#include "thingProperties.h"   // Cloud variables & bindings
+#include "arduino_secrets.h"
+#include "thingProperties.h"
+
+// setup()
+initProperties();
+ArduinoCloud.begin(ArduinoIoTPreferredConnection);
+
+// loop()
+ArduinoCloud.update(); // keep cloud in sync
+
+// On debounced state change:
+bool locked = (stableState == HIGH);     // HIGH = Locked (project decision)
+isLocked = locked;                       // dashboard boolean
+lockText = locked ? "Locked" : "Unlock"; // dashboard text
+
+// Callback (ignore remote writes):
+void onIsLockedChange() { /* hardware-driven only */ }
+
