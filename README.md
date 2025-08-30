@@ -24,7 +24,7 @@ MIT
 Setup confirmed via GitHub Desktop.
 
 ## Architecture (Block Diagram)
-![Block diagram](hardware/door-lock-block.png)
+![Block diagram](hardware/door_lock_block_diagram_v3.pdf)
 
 ## Real wiring (MVP)
 ![Real wiring — ESP32 DevKitC, microswitch COM→GPIO21, NO→GND](hardware/microswitch-wiring.png)
