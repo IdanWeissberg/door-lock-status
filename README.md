@@ -91,7 +91,7 @@ Logic: **LOCKED = HIGH**, **UNLOCKED = LOW**. Debounce: **40 ms**.
 - Static IP is **optional**. If you want one later, set a DHCP reservation in your router (no firmware changes needed).
 
 ###
-![Block diagram](docs/door_ui_states_merged.png)
+![Block diagram](docs/door_ui_status_merged.jpg)
 
 ## Arduino Cloud Dashboard (optional)
 
