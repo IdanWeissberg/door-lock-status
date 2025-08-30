@@ -5,7 +5,7 @@ Starter structure for a door-lock status indicator using a **microswitch (SPDT l
 
 ## Why → What → How (at a glance)
 - **Why:** Know if the door is **Locked/Unlock** at home and (optionally) in Arduino Cloud.
-- **What:** Read a microswitch on **GPIO21**, debounce, map to **Locked/Unlock**, mirror on LED (**GPIO2**), serve a tiny phone UI.
+- **What:** Read a microswitch on **GPIO21**, debounce, map to **Locked/Unlocked**, mirror on LED (**GPIO2**), serve a tiny phone UI.
 - **How:** Wire switch + LED → flash the firmware → browse `http://door.local/` → (optional) bind Arduino Cloud dashboard widgets.
 
 ---
@@ -45,7 +45,7 @@ MIT
 | Physical (microswitch) | `digitalRead` | Logical | LED (GPIO2) | Serial (raw) | `/status` text |
 |---|---:|---|---|---|---|
 | Lever released (door locked) | `HIGH` | **Locked** | OFF | `OPEN` | `Locked` |
-| Lever pressed (door unlock)  | `LOW`  | **Unlock** | ON  | `CLOSED` | `Unlock` |
+| Lever pressed (door unlock)  | `LOW`  | **Unlocked** | ON  | `CLOSED` | `Unlock` |
 
 > Notes: INPUT_PULLUP means idle/open = HIGH. We keep **LOCKED = HIGH**.
 
