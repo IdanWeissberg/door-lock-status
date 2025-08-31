@@ -1,7 +1,7 @@
-# 🚪 Door Lock Detector Project  
+# 🚪 Door Lock Detector Project
 
 Welcome to my IoT project!  
-This page presents a simple yet functional **door lock status indicator** based on ESP32.  
+This page presents a simple yet functional **door lock status indicator** based on ESP32.
 
 ---
 
@@ -12,7 +12,7 @@ This page presents a simple yet functional **door lock status indicator** based 
 - **Debounce:** 40 ms  
 - **Serial Baud:** 115200  
 
-![Real wiring — ESP32 DevKitC, microswitch COM→GPIO21, NO→GND](../hardware/Real_wiring_after_install.jpg)
+![Real wiring — ESP32 DevKitC, microswitch COM→GPIO21, NO→GND](hardware/Real_wiring_after_install.jpg)
 
 ---
 
@@ -24,7 +24,7 @@ This page presents a simple yet functional **door lock status indicator** based 
 ## 📜 Features
 - Local LED lock/unlock indicator  
 - Serial log for debugging (OPEN/CLOSED)  
-- HTTP endpoint for phone UI (local Wi-Fi)  
+- HTTP endpoint for phone UI (local Wi-Fi, HTTP)  
 - Arduino IoT Cloud integration for remote dashboard  
 
 ---
@@ -40,12 +40,10 @@ You can explore the full source code, documentation, and hardware photos here:
 - ✅ Toggle open/close → state detected correctly  
 - ✅ Idle stability after 60s → OK  
 - ✅ HTTP status endpoint → OK  
-- ✅ Arduino Cloud dashboard → OK  
+- ✅ Arduino IoT Cloud dashboard → OK  
 
 ---
 
 ## 📸 Screenshots
-![Dashboard](../docs/door_lock_status_merged.jpg)
-![Block diagram](../docs/door_ui_status_merged.jpg)
-
-
+![Dashboard](docs/door_lock_status_merged.jpg)
+![Phone UI](docs/door_ui_status_merged.jpg)
