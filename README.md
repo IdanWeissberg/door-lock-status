@@ -27,6 +27,9 @@ MIT
 ![Real wiring — ESP32 DevKitC, microswitch COM→GPIO21, NO→GND](hardware/microswitch-wiring.png)
 ![Real wiring — ESP32 DevKitC, microswitch COM→GPIO21, NO→GND](hardware/Real_wiring_after_install.jpg).
 
+## Animation
+![Animation](hardware/mech_install/door_latch_topplunger_sideoverrun_RAISED.gif).
+
 **Caption:** ESP32 DevKitC with microswitch **COM→GPIO21**, **NO→GND** (GPIO21 as `INPUT_PULLUP`).  
 LED on **GPIO2 → 220Ω → GND**.  
 Logic: **LOCKED = HIGH**, **UNLOCKED = LOW**. Debounce: **40 ms**.  
