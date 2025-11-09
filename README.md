@@ -36,7 +36,7 @@ Logic: **LOCKED = HIGH**, **UNLOCKED = LOW**. Debounce: **40 ms**.
 *(If your latch presses the lever when locked, swap NO↔NC to keep LOCKED = HIGH.)*
 
 
-**Setup (photo):**
+**Setup :**
 - **Board:** ESP32 DevKitC
 - **Sensor:** Microswitch (SPDT lever), wired so that **LOCKED reads HIGH** with `INPUT_PULLUP`.
   - **COM → GPIO21**
