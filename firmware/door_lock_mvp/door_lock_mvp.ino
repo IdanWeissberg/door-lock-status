@@ -194,10 +194,10 @@ void setup() {
 
   // Initial read → set LED + one-time Serial line (CLOSED/OPEN)
   if (digitalRead(SENSOR) == LOW) {
-    digitalWrite(LED_PIN, HIGH);  // LED ON
+    digitalWrite(LED_PIN, LOW);  // LED OFF
     Serial.println("CLOSED");
   } else {
-    digitalWrite(LED_PIN, LOW);   // LED OFF
+    digitalWrite(LED_PIN, HIGH);   // LED ON
     Serial.println("OPEN");
   }
 
@@ -231,10 +231,10 @@ void loop() {
 
     // Apply LED + Serial (CLOSED/OPEN wording)
     if (stableState == LOW) {
-      digitalWrite(LED_PIN, HIGH); // LED ON
+      digitalWrite(LED_PIN, LOW); // LED OFF
       Serial.println("CLOSED");
     } else {
-      digitalWrite(LED_PIN, LOW);  // LED OFF
+      digitalWrite(LED_PIN, HIGH);  // LED ON
       Serial.println("OPEN");
     }
     bool locked = (stableState == HIGH);   // HIGH = Locked (matches /status)
