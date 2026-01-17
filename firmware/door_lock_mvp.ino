@@ -11,6 +11,11 @@
 #include "secrets.h"     // Defines WIFI_SSID / WIFI_PASS (keep this file local; don't commit)
 #include <WebServer.h>   // Lightweight HTTP server (ESP32 Arduino core)
 #include <ESPmDNS.h>     // mDNS for 'door.local'
+#include <ArduinoIoTCloud.h>          // [ADD] Cloud core
+#include "arduino_secrets.h"          // [ADD] 
+#include "thingProperties.h"          // [ADD] 
+
+
 
 // --- Network (static IP attempt; DHCP fallback in code below) ---
 IPAddress local_IP(192,168,1,70);
@@ -61,7 +66,7 @@ ip.textContent=location.host; // show host (IP or door.local)
 async function fetchStatus(){
   try{
     const r=await fetch('/status',{cache:'no-store'}); // avoid stale responses
-    const t=(await r.text()).trim(); // "Locked" | "Unlock"
+    const t=(await r.text()).trim(); // "Locked" | "Unlocked"
     box.textContent=t;
     document.body.className=(t==='Locked')?'locked':'unlocked'; // update color
     upd.textContent='Last update: '+new Date().toLocaleTimeString();
@@ -97,8 +102,11 @@ void handleRoot(){
 // IMPORTANT mapping: LOW => "Unlock", HIGH => "Locked" (as per your UI wording)
 void handleStatus() {
   server.sendHeader("Cache-Control", "no-store");
-  server.send(200, "text/plain", (stableState == LOW) ? "Unlock" : "Locked");
+  server.send(200, "text/plain", (stableState == LOW) ? "Locked" : "Unlocked");
 }
+void onIsLockedChange() {
+  // Ignore remote writes: state is hardware-driven only.
+}  
 
 // Wi-Fi connect: try static IP first; if association/timeout → DHCP fallback
 bool connectWiFi() {
@@ -160,6 +168,10 @@ void setup() {
 
   // --- Wi-Fi bring-up ---
   connectWiFi();
+  initProperties();                                        // [ADD]
+  ArduinoCloud.begin(ArduinoIoTPreferredConnection);       // [ADD]
+  setDebugMessageLevel(2); ArduinoCloud.printDebugInfo();  // [ADD] 
+
 
   // --- HTTP routes ---
   server.on("/", handleRoot);
@@ -182,10 +194,10 @@ void setup() {
 
   // Initial read → set LED + one-time Serial line (CLOSED/OPEN)
   if (digitalRead(SENSOR) == LOW) {
-    digitalWrite(LED_PIN, HIGH);  // LED ON
+    digitalWrite(LED_PIN, LOW);  // LED OFF
     Serial.println("CLOSED");
   } else {
-    digitalWrite(LED_PIN, LOW);   // LED OFF
+    digitalWrite(LED_PIN, HIGH);   // LED ON
     Serial.println("OPEN");
   }
 
@@ -193,9 +205,14 @@ void setup() {
   lastReading  = digitalRead(SENSOR);
   stableState  = lastReading;
   lastChangeMs = millis();
+  isLocked = (stableState == LOW);                 // true = Locked (HIGH per your /status)
+  lockText = isLocked ? "Locked" : "Unlocked";        // text for the Value widget
+ 
 }
 
 void loop() {
+  ArduinoCloud.update();                                   
+
   // --- Non-blocking debounce ---
   int reading = digitalRead(SENSOR); // raw sample each loop
 
@@ -214,16 +231,22 @@ void loop() {
 
     // Apply LED + Serial (CLOSED/OPEN wording)
     if (stableState == LOW) {
-      digitalWrite(LED_PIN, HIGH); // LED ON
+      digitalWrite(LED_PIN, LOW); // LED OFF
       Serial.println("CLOSED");
     } else {
-      digitalWrite(LED_PIN, LOW);  // LED OFF
+      digitalWrite(LED_PIN, HIGH);  // LED ON
       Serial.println("OPEN");
     }
+    bool locked = (stableState == LOW);   // LOW = Locked (matches /status)
+    isLocked = locked;                     // cloud boolean
+    lockText = locked ? "Locked" : "Unlocked"; // cloud text
+
+
   }
 
   // --- Serve any pending HTTP requests ---
   server.handleClient();
 
+
   // no delay(); keep loop responsive
-}
+} 
