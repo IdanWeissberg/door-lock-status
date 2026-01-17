@@ -1,11 +1,15 @@
 # Door Lock Status
-Starter structure for a door-lock status indicator using a **microswitch (SPDT lever)** and Arduino/ESP32.
+A robust IoT solution for real-time door security monitoring using an ESP32 microcontroller and a physical microswitch sensor. This project demonstrates a full-stack hardware integration, featuring a local web-based UI, Arduino IoT Cloud synchronization, and fail-safe firmware design.
 
-## Why this skeleton?
-- Clean folders: `hardware/`, `firmware/`, `docs/`, `test/`
-- Ready `.gitignore`
-- Simple CI (GitHub Actions)
-- Keep code comments short and in English
+🛠 Engineering Architecture
+1. Hardware Design (Active-Low Logic)
+The system utilizes a normally open (NO) microswitch wired in an Active-Low configuration:
+
+Sensor Interface: Connected to GPIO 21 with an Internal Pull-up resistor enabled.
+
+Signal Integrity: By pulling the pin to GND upon physical closure, the system minimizes external components (BOM reduction) and improves noise immunity in the idle state.
+
+Visual Feedback: An onboard/external LED (GPIO 2) provides immediate local status indication.
 
 ## Folders
 - `hardware/` – wiring, BOM, photos.
@@ -32,20 +36,19 @@ MIT
 
 **Caption:** ESP32 DevKitC with microswitch **COM→GPIO21**, **NO→GND** (GPIO21 as `INPUT_PULLUP`).  
 LED on **GPIO2 → 220Ω → GND**.  
-Logic: **LOCKED = HIGH**, **UNLOCKED = LOW**. Debounce: **40 ms**.  
+Logic: **LOCKED = LOW**, **UNLOCKED = HIGH**. Debounce: **40 ms**.  
 *(If your latch presses the lever when locked, swap NO↔NC to keep LOCKED = HIGH.)*
 
 
 **Setup :**
 - **Board:** ESP32 DevKitC
-- **Sensor:** Microswitch (SPDT lever), wired so that **LOCKED reads HIGH** with `INPUT_PULLUP`.
-  - **COM → GPIO21**
-  - **NO  → GND**  (lever NOT pressed when locked → pin is OPEN → HIGH)
-  - If your latch **presses** the lever when locked, use **NC → GND** instead (to keep LOCKED = HIGH).
+- **Sensor:** Microswitch (SPDT lever), wired so that **LOCKED reads LOW** with `INPUT_PULLUP`.
+  - **COM → GND**
+  - **NO  → GPIO21**  
 - **ESP32 pin config:** `SENSOR_PIN = GPIO21` configured as `INPUT_PULLUP`
 - **LED:** `GPIO2` (onboard) — or external: `GPIO2 → 220Ω → LED anode → GND`
 - **Power:** USB 5V
-- **Logic (INPUT_PULLUP):** **LOCKED → HIGH**, **UNLOCKED → LOW**
+- **Logic (INPUT_PULLUP):** **LOCKED → LOW**, **UNLOCKED → HIGH**
 - **Debounce:** 40 ms
 
 ## Phone UI (door.local) — Quickstart
@@ -72,8 +75,8 @@ Logic: **LOCKED = HIGH**, **UNLOCKED = LOW**. Debounce: **40 ms**.
   `{ "hostname": "door", "ip": "...", "mac": "...", "rssi": <dBm>, "version": "1.0.0" }`
 
 ### Status semantics (MVP)
-- `Unlock` ↔ sensor **LOW** (microswitch pressed/closed)  
-- `Locked` ↔ sensor **HIGH** (microswitch released/open)  
+- `Locked` ↔ sensor **LOW** (microswitch pressed/closed)  
+- `Unlocked` ↔ sensor **HIGH** (microswitch released/open)  
 - Serial logs print `CLOSED` / `OPEN` (raw switch semantics)
 
 ### Test (manual)
@@ -104,7 +107,7 @@ Logic: **LOCKED = HIGH**, **UNLOCKED = LOW**. Debounce: **40 ms**.
 | Name       | Type   | Permission | Update policy | Notes                                                 |
 |------------|--------|------------|---------------|--------------------------------------------------------|
 | `isLocked` | Bool   | READWRITE  | On change     | Callback `onIsLockedChange()` ignores remote writes.   |
-| `lockText` | String | READ       | On change     | Shows “Locked/Unlock” in a Value widget.               |
+| `lockText` | String | READ       | On change     | Shows “Locked/Unlocked” in a Value widget.               |
 
 ### Dashboard screenshot
 
@@ -126,7 +129,7 @@ ArduinoCloud.begin(ArduinoIoTPreferredConnection);
 ArduinoCloud.update(); // keep cloud in sync
 
 // On debounced state change:
-bool locked = (stableState == HIGH);        // HIGH = Locked (project decision)
+bool locked = (stableState == LOW);       
 isLocked = locked;                          // dashboard boolean
 lockText = locked ? "Locked" : "Unlocked";  // dashboard text
 
