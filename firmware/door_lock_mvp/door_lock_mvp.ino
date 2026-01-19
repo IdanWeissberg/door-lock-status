@@ -115,7 +115,7 @@ bool connectWiFi() {
   WiFi.mode(WIFI_OFF);             // hard reset radio (helps stuck states)
   delay(200);
   WiFi.mode(WIFI_STA);             // station mode (join existing Wi-Fi)
-  WiFi.setSleep(false);            // keep radio awake for responsive HTTP
+  WiFi.setSleep(true);            // sleep mode for power save. 
   WiFi.setAutoReconnect(true);     // auto-reconnect on drops
 
   // --- Attempt static IP (your preference) ---
