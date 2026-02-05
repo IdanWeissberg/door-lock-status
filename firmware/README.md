@@ -7,7 +7,7 @@ Stable input with `INPUT_PULLUP`, simple 40 ms debounce, and clear Serial logs.
 ## Pinout (What)
 - SENSOR: GPIO21 (INPUT_PULLUP)
 - LED: GPIO2
-- Logic: CLOSED=LOW → LED ON, OPEN=HIGH → LED OFF
+- Logic: CLOSED=LOW → LED OFF, OPEN=HIGH → LED ON
 
 ## Build & Flash 
 1. Board: ESP32 Dev Module
